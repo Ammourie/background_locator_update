@@ -1,15 +1,17 @@
-group 'yukams.app.background_locator_2'
+// File: android/build.gradle
+group   'yukams.app.background_locator_2'
 version '1.0-SNAPSHOT'
 
 buildscript {
-    ext.kotlin_version = '1.7.20'
+    // CHANGED: use a recent Kotlin that works with AGP 8.x
+    ext.kotlin_version = '1.9.22'
+
     repositories {
         google()
-        jcenter()
+        mavenCentral()          // CHANGED: jcenter() is deprecated
     }
-
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.0.2'  // or newer compatible with your SDK
+        classpath 'com.android.tools.build:gradle:8.0.2'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
 }
@@ -17,34 +19,52 @@ buildscript {
 rootProject.allprojects {
     repositories {
         google()
-        jcenter()
+        mavenCentral()
     }
 }
 
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
+/* ------------------------------------------------------------------
+   JVM-TARGET ALIGNMENT
+   ------------------------------------------------------------------ */
+kotlin {
+    // CHANGED: One-liner that forces both Kotlin & Java to JDK 17
+    jvmToolchain(17)
+}
+
 android {
-    namespace 'yukams.app.background_locator_2'
-    compileSdkVersion 33  
+    /* -------- ANDROID CONFIG -------- */
+    namespace        'yukams.app.background_locator_2'   // already present
+    compileSdkVersion 34                                 // CHANGED: latest stable
+
+    // CHANGED: keep Java in sync with Kotlin (17)
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
 
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
     }
-    defaultConfig {
-        minSdkVersion 21
-        targetSdkVersion 33  // or 35
 
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    defaultConfig {
+        minSdkVersion     21
+        targetSdkVersion  34                              // CHANGED: align with compileSdk
+        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
-    lintOptions {
-        disable 'InvalidPackage'
-    }
+
+    lintOptions { disable 'InvalidPackage' }
 }
 
+/* -------- DEPENDENCIES -------- */
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    implementation "com.google.android.gms:play-services-location:21.0.1"
-    implementation 'com.google.code.gson:gson:2.8.6'
-    implementation 'com.google.android.material:material:1.0.0'
+    // CHANGED: use stdlib without the legacy jdk7 suffix
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+
+    // Bumped to latest stable artifact versions
+    implementation "com.google.android.gms:play-services-location:21.2.0"
+    implementation 'com.google.code.gson:gson:2.11.0'
+    implementation 'com.google.android.material:material:1.11.0'
 }
